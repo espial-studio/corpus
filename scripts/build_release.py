@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a complete, static public corpus release from one pinned Loom snapshot."""
+"""Build a complete, static public corpus release from one pinned editorial snapshot."""
 
 from __future__ import annotations
 
