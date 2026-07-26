@@ -26,8 +26,7 @@ The full `practices.json` and every per-practice document remain authoritative. 
 ```text
 Curator presses Publish in Loom
   → Loom commits validated data/practices.json
-  → Loom GitHub Action validates the committed file again
-  → repository_dispatch carries that exact commit SHA to espial-studio/corpus
+  → Loom's Durable Object sends repository_dispatch for that exact commit SHA
   → corpus Action checks out that SHA, builds static assets, deploys atomically
   → current v1 manifest points to the immutable release
 ```
@@ -36,12 +35,15 @@ There are no scheduled, quiescence, or device-instigated commits. A failed publi
 
 ## One-time setup
 
-1. Create `espial-studio/corpus` from this directory and install the existing Loom GitHub App on it as well as on `espial-studio/loom`.
-2. Give the app **Contents: read and write** permission. The Loom workflow uses its installation token to send a repository dispatch; the corpus workflow uses it only to read the pinned Loom commit.
-3. In the **loom** repository Actions secrets, add `CORPUS_PUBLISHER_APP_ID` and `CORPUS_PUBLISHER_PRIVATE_KEY` for that app.
-4. In the **corpus** repository Actions secrets, add `LOOM_READER_APP_ID`, `LOOM_READER_PRIVATE_KEY`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ACCOUNT_ID`.
-5. Ensure the Cloudflare token can edit Workers and DNS for the `espial.studio` zone. Deploy once with `npx wrangler deploy`; it provisions `corpus.espial.studio` as a Workers Custom Domain if no conflicting DNS record exists.
-6. Run **Publish public corpus release** in the Loom Actions tab with a known-good `data/practices.json` commit, then verify `/api/v1/manifest.json` and the matching release URL.
+1. Install the existing Loom GitHub App on both `espial-studio/loom` and `espial-studio/corpus` (the same organisation installation can be expanded to include both repositories).
+2. Give the app **Contents: read and write** permission. Loom mints one short-lived installation token after a curator publishes: it writes to Loom and asks the corpus repository to release that exact new commit.
+3. In the **corpus** repository Actions secrets, add `LOOM_READER_APP_ID`, `LOOM_READER_PRIVATE_KEY`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ACCOUNT_ID`. No GitHub Actions secrets are needed in Loom for this handoff.
+4. Ensure the Cloudflare token can edit Workers and DNS for the `espial.studio` zone. Deploy once with `npx wrangler deploy`; it provisions `corpus.espial.studio` as a Workers Custom Domain if no conflicting DNS record exists.
+5. Use **Run workflow** in the corpus repository's **Build and deploy corpus release** Action with a known-good Loom commit to confirm the initial release. Subsequent releases are requested directly by a curator publish in Loom.
+
+If the GitHub App is not installed on `corpus`, Loom still completes the
+repository publish. The Pending page records that the public-release handoff
+needs attention instead of calling the curator publish a failure.
 
 ## Local release check
 
