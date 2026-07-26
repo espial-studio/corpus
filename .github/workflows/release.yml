@@ -1,0 +1,72 @@
+name: Build and deploy corpus release
+
+on:
+  repository_dispatch:
+    types: [loom-published]
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Commit SHA in espial-studio/loom to publish
+        required: true
+        type: string
+      published_at:
+        description: Optional ISO-8601 publication timestamp
+        required: false
+        type: string
+
+concurrency:
+  group: corpus-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_COMMIT: ${{ github.event.client_payload.source_commit || inputs.source_commit }}
+      PUBLISHED_AT: ${{ github.event.client_payload.published_at || inputs.published_at }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The same GitHub App is installed on both repositories. It reads the
+      # exact Loom commit that instigated this release; no device or scheduler
+      # can make a release independently.
+      - name: Create token for Loom source read
+        id: loom-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.LOOM_READER_APP_ID }}
+          private-key: ${{ secrets.LOOM_READER_PRIVATE_KEY }}
+          owner: espial-studio
+          repositories: loom
+
+      - name: Check out pinned Loom corpus
+        uses: actions/checkout@v4
+        with:
+          repository: espial-studio/loom
+          ref: ${{ env.SOURCE_COMMIT }}
+          token: ${{ steps.loom-token.outputs.token }}
+          path: loom
+          sparse-checkout: data/practices.json
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - run: pip install -r requirements.txt
+      - run: python scripts/build_release.py --input loom/data/practices.json --out dist --source-commit "$SOURCE_COMMIT" --published-at "${PUBLISHED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

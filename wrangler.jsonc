@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "espial-corpus",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-26",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "drop-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": true
+  },
+  "observability": { "enabled": true },
+  "routes": [{ "pattern": "corpus.espial.studio", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": true
+}

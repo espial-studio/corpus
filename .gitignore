@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+.wrangler/
+dist/
+__pycache__/
+.DS_Store
+
+# Superseded local viewer material. It stays on this machine for reference,
+# but the deployable project has exactly one operational input: a pinned Loom
+# commit fetched by the release workflow.
+/practices.json
+/build.py
+/index.html

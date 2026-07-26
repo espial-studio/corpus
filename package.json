@@ -1,0 +1,16 @@
+{
+  "name": "espial-corpus",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+		"build": "python3 scripts/build_release.py --help",
+    "dev": "wrangler dev",
+		"check": "python3 -m py_compile scripts/build_release.py",
+		"test": "python3 scripts/test_release.py",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.114.0"
+  }
+}
