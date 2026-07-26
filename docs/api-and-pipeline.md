@@ -38,7 +38,7 @@ There are no scheduled, quiescence, or device-instigated commits. A failed publi
 1. Install the existing Loom GitHub App on both `espial-studio/loom` and `espial-studio/corpus` (the same organisation installation can be expanded to include both repositories).
 2. Give the app **Contents: read and write** permission. Loom mints one short-lived installation token after a curator publishes: it writes to Loom and asks the corpus repository to release that exact new commit.
 3. In the **corpus** repository Actions secrets, add `LOOM_READER_APP_ID`, `LOOM_READER_PRIVATE_KEY`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ACCOUNT_ID`. No GitHub Actions secrets are needed in Loom for this handoff.
-4. Ensure the Cloudflare token can edit Workers and DNS for the `espial.studio` zone. Deploy once with `npx wrangler deploy`; it provisions `corpus.espial.studio` as a Workers Custom Domain if no conflicting DNS record exists.
+4. Create a Cloudflare API token scoped to the Espial Studio account with **Account → Workers Scripts → Edit**, and to the `espial.studio` zone with **Zone → Workers Routes → Edit**. Wrangler reads that zone route list even when the configured hostname is a Workers Custom Domain. Deploy once with `npx wrangler deploy`; it provisions `corpus.espial.studio` as a Workers Custom Domain if no conflicting DNS record exists.
 5. Use **Run workflow** in the corpus repository's **Build and deploy corpus release** Action with a known-good Loom commit to confirm the initial release. Subsequent releases are requested directly by a curator publish in Loom.
 
 If the GitHub App is not installed on `corpus`, Loom still completes the
