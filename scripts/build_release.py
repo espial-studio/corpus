@@ -16,8 +16,24 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 WIDTH, HEIGHT, MARGIN = 480, 800, 38
-SERIF = "/System/Library/Fonts/Supplemental/PTSerif.ttc"
-SANS = "/System/Library/Fonts/Supplemental/PTSans.ttc"
+
+
+def font_path(*candidates: str) -> str:
+    """Use the intended macOS faces locally and a pinned Linux fallback in CI."""
+    for candidate in candidates:
+        if Path(candidate).is_file():
+            return candidate
+    raise RuntimeError(f"no usable font found; checked: {', '.join(candidates)}")
+
+
+SERIF = font_path(
+    "/System/Library/Fonts/Supplemental/PTSerif.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+)
+SANS = font_path(
+    "/System/Library/Fonts/Supplemental/PTSans.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+)
 
 
 def digest(raw: bytes) -> str:
